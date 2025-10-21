@@ -6,12 +6,12 @@
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { localize } from '../../../../../../nls.js';
-import { CountTokensCallback, IPreparedToolInvocation, IToolData, IToolImpl, IToolInvocation, IToolInvocationPreparationContext, IToolResult, ToolDataSource, ToolProgress } from '../../../../chat/common/languageModelToolsService.js';
+import { CountTokensCallback, IPreparedToolInvocation, IToolData, IToolImpl, IToolInvocation, IToolInvocationPreparationContext, IToolResult, ToolDataSource, ToolInvocationPresentation, ToolProgress } from '../../../../chat/common/languageModelToolsService.js';
 import { ITerminalInstance } from '../../../../terminal/browser/terminal.js';
 import { RunInTerminalToolConfirmationHelper } from './runInTerminalTool.js';
 
 export const ConfirmTerminalCommandToolData: IToolData = {
-	id: 'confirm_terminal_command',
+	id: 'vscode_get_terminal_confirmation',
 	toolReferenceName: 'confirmTerminalCommand',
 	displayName: localize('confirmTerminalCommandTool.displayName', 'Confirm Terminal Command'),
 	modelDescription: [
@@ -69,7 +69,11 @@ export class ConfirmTerminalCommandTool implements IToolImpl {
 	constructor(private readonly _terminalCommandConfirmationHelper: RunInTerminalToolConfirmationHelper,
 	) { }
 	async prepareToolInvocation(context: IToolInvocationPreparationContext, token: CancellationToken): Promise<IPreparedToolInvocation | undefined> {
-		return this._terminalCommandConfirmationHelper.prepareToolInvocation(context, undefined, token);
+		const preparedInvocation = await this._terminalCommandConfirmationHelper.prepareToolInvocation(context, undefined, token);
+		if (preparedInvocation) {
+			preparedInvocation.presentation = ToolInvocationPresentation.HiddenAfterComplete;
+		}
+		return preparedInvocation;
 	}
 
 	async invoke(invocation: IToolInvocation, countTokens: CountTokensCallback, progress: ToolProgress, token: CancellationToken): Promise<IToolResult> {
